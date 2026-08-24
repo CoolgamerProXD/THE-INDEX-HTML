@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aurafarm Simulator</title>
+  <style>
+    :root{
+      --bg:#070914; --panel:#11182a; --panel2:#18233b; --text:#f6fbff; --muted:#9db0d0;
+      --lime:#8dff65; --gold:#ffd761; --cyan:#59e7ff; --purple:#bd7cff; --red:#ff596a;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box; user-select:none}
+    body{margin:0; min-height:100vh; overflow:hidden; font-family:Inter, ui-rounded, system-ui, Segoe UI, Arial, sans-serif; color:var(--text); background:radial-gradient(circle at 50% -10%, #284b86 0, #0c1120 40%, #05060d 100%)}
+    button{font:inherit; color:inherit; border:0; cursor:pointer}
+    .stars{position:fixed; inset:0; pointer-events:none; opacity:.65; background-image:radial-gradient(#fff 1px, transparent 1px),radial-gradient(#aaf 1px, transparent 1px); background-size:78px 78px, 121px 121px; background-position:0 0, 33px 48px; animation: drift 25s linear infinite}.scan{position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px);background-size:100% 4px;mix-blend-mode:overlay}@keyframes drift{to{background-position:260px 320px, 400px 100px}}
+    #app{position:relative; height:100vh; display:grid; grid-template-rows:auto 1fr auto; padding:14px; gap:12px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border:1px solid rgba(255,255,255,.12); border-radius:20px; background:linear-gradient(145deg, rgba(17,24,42,.9), rgba(20,31,55,.72)); box-shadow:var(--shadow); backdrop-filter: blur(10px)}
+    .brand{display:flex; align-items:center; gap:12px}.logo{width:46px;height:46px;border-radius:16px;background:conic-gradient(from 40deg, var(--lime), var(--cyan), var(--purple), var(--gold), var(--lime)); box-shadow:0 0 24px rgba(141,255,101,.45); display:grid; place-items:center; font-size:26px}.title h1{font-size:22px; margin:0; letter-spacing:.5px}.title p{margin:2px 0 0;color:var(--muted);font-size:12px}.topstats{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}.pill{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);font-weight:800}.pill small{color:var(--muted);font-weight:700;margin-right:4px}
+    main{display:grid; grid-template-columns:330px minmax(360px, 1fr) 360px; gap:12px; min-height:0}.panel{background:linear-gradient(160deg, rgba(16,24,43,.92), rgba(11,16,30,.83)); border:1px solid rgba(255,255,255,.12); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; backdrop-filter: blur(10px)}.panel h2{font-size:16px;margin:0 0 8px}.side{padding:14px; overflow:auto}.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{padding:10px;border-radius:16px;background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.08)}.stat b{display:block;font-size:19px}.stat span{font-size:12px;color:var(--muted)}
+    .stageBox{margin-top:12px;padding:12px;border-radius:18px;background:linear-gradient(135deg, rgba(141,255,101,.12), rgba(89,231,255,.08));border:1px solid rgba(141,255,101,.2)}.bar{height:13px;background:#050914;border-radius:99px;overflow:hidden;border:1px solid rgba(255,255,255,.09)}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--lime),var(--cyan),var(--purple)); box-shadow:0 0 18px var(--cyan); transition:width .25s}.hint{color:var(--muted);font-size:12px;line-height:1.35}.bigBtn{width:100%;padding:12px;margin-top:9px;border-radius:16px;font-weight:1000;background:linear-gradient(135deg,#2654ff,#954cff);box-shadow:0 10px 22px rgba(73,80,255,.28);transition:.12s transform,.12s filter}.bigBtn:hover{filter:brightness(1.12); transform:translateY(-1px)}.bigBtn:active{transform:scale(.98)}.bigBtn.green{background:linear-gradient(135deg,#27b05c,#9aff5e);color:#07110b}.bigBtn.gold{background:linear-gradient(135deg,#f8b83b,#fff06a);color:#171001}.bigBtn.red{background:linear-gradient(135deg,#ff446a,#ff9d46)}.bigBtn:disabled{opacity:.45;filter:grayscale(.4);cursor:not-allowed}.upgrade{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px;margin:8px 0;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}.upgrade strong{display:block}.upgrade small{color:var(--muted)}.cost{font-weight:900;color:var(--gold)}
+    #arena{position:relative; min-height:0; display:grid; place-items:center; background:radial-gradient(circle at 50% 40%, rgba(89,231,255,.15), transparent 35%),linear-gradient(180deg, rgba(11,19,40,.45), rgba(0,0,0,.35)); overflow:hidden}.world2d{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 75%, rgba(141,255,101,.25) 0 18%, transparent 45%), linear-gradient(180deg, transparent 0 60%, rgba(30,72,29,.85) 61%)}.world2d:after{content:"";position:absolute;left:-10%;right:-10%;bottom:14%;height:8px;background:repeating-linear-gradient(90deg, rgba(255,255,255,.15) 0 12px, transparent 12px 22px);opacity:.5}.clickZone{position:relative; z-index:2; width:min(470px,82%); aspect-ratio:1; border-radius:50%; display:grid; place-items:center; isolation:isolate}.auraRing{position:absolute;inset:10%;border-radius:50%;border:4px solid var(--aura,#8dff65);filter:drop-shadow(0 0 22px var(--aura,#8dff65)); animation:pulse 1.4s infinite ease-in-out}.auraRing.r2{inset:0; opacity:.55; animation-duration:2.1s; animation-direction:reverse}.auraRing.r3{inset:20%; opacity:.35; animation-duration:1s}@keyframes pulse{50%{transform:scale(1.08);opacity:.55}}.piccolo{position:relative;width:185px;height:330px;filter:drop-shadow(0 24px 18px rgba(0,0,0,.35)); transform-origin:50% 85%; animation:bob 1.8s ease-in-out infinite}.clickZone:active .piccolo{transform:scale(.94) rotate(-2deg)}@keyframes bob{50%{translate:0 -10px}}.head{position:absolute;left:52px;top:18px;width:80px;height:95px;border-radius:44% 44% 50% 50%;background:#75d85b;border:3px solid #18381a}.antenna{position:absolute;width:42px;height:56px;border:4px solid #75d85b;border-bottom:0;border-left:0;border-radius:0 80% 0 0;top:-38px}.antenna.a1{left:53px; transform:rotate(-33deg)}.antenna.a2{right:53px; transform:scaleX(-1) rotate(-33deg)}.eye{position:absolute;top:44px;width:18px;height:10px;background:#fff;border-radius:50%;box-shadow:inset 0 -4px #111}.eye.e1{left:17px}.eye.e2{right:17px}.mouth{position:absolute;left:28px;top:70px;width:25px;height:5px;background:#172315;border-radius:8px}.torso{position:absolute;left:34px;top:104px;width:118px;height:142px;border-radius:28px 28px 38px 38px;background:linear-gradient(90deg,#4a268e,#7044cf);border:3px solid #22143e}.cape{position:absolute;left:6px;top:94px;width:174px;height:178px;border-radius:44px 44px 22px 22px;background:#f2f2ee;border:3px solid #aaa;z-index:-1}.arm{position:absolute;top:124px;width:36px;height:118px;background:#75d85b;border:3px solid #18381a;border-radius:20px}.arm.l{left:8px;transform:rotate(16deg)}.arm.r{right:8px;transform:rotate(-16deg)}.leg{position:absolute;top:232px;width:42px;height:88px;background:#7044cf;border:3px solid #22143e;border-radius:18px}.leg.l{left:48px}.leg.r{right:48px}.speech{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:6;max-width:82%;padding:10px 14px;border-radius:18px;background:#fff;color:#101423;font-weight:900;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}.speech:after{content:"";position:absolute;left:48%;bottom:-10px;border:10px solid transparent;border-top-color:#fff;border-bottom:0}.float{position:absolute; z-index:8; font-weight:1000; pointer-events:none; text-shadow:0 4px 14px rgba(0,0,0,.6); animation:floatUp 1s forwards}@keyframes floatUp{to{translate:0 -80px; opacity:0; scale:1.25}}
+    canvas#world3d{position:absolute; inset:0; width:100%; height:100%; display:none; background:#070914}.mode3d #world3d{display:block}.mode3d .world2d,.mode3d .clickZone{display:none}.hud3d{position:absolute;left:14px;bottom:14px;z-index:10;display:none;gap:8px;align-items:end}.mode3d .hud3d{display:flex}.key{padding:7px 9px;border-radius:10px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);font-size:12px;color:#d7e6ff}.bossbar{position:absolute;left:50%;transform:translateX(-50%);top:84px;width:min(520px,70%);display:none;z-index:12}.mode3d .bossbar{display:block}.bossbar b{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}.danger{color:#ff7688}
+    .rollDisplay{min-height:120px;display:grid;place-items:center;text-align:center;border-radius:18px;background:radial-gradient(circle,rgba(255,255,255,.1),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08);margin-bottom:10px}.auraName{font-size:28px;font-weight:1000;text-shadow:0 0 20px currentColor}.rarity{font-weight:900;color:var(--muted)}.inventory{display:grid;gap:7px}.auraItem{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;padding:9px;border-radius:14px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)}.auraItem.equipped{outline:2px solid var(--aura,#8dff65);background:rgba(141,255,101,.12)}.tag{font-size:11px;padding:3px 7px;border-radius:999px;background:rgba(255,255,255,.1);font-weight:900}.quest{padding:10px;border-radius:16px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);margin:8px 0}.quest.done{background:rgba(141,255,101,.13);border-color:rgba(141,255,101,.3)}.tabs{display:flex;gap:6px;margin-bottom:10px}.tab{flex:1;padding:9px;border-radius:13px;background:rgba(255,255,255,.07);font-weight:900}.tab.active{background:linear-gradient(135deg,#2654ff,#954cff)}.tabPage{display:none}.tabPage.active{display:block}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:99;padding:12px 18px;border-radius:999px;background:rgba(8,10,20,.94);border:1px solid rgba(255,255,255,.16);box-shadow:var(--shadow);font-weight:900;opacity:0;transition:.25s}.toast.show{opacity:1;translate:0 -8px}.modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.72);z-index:90}.modal.show{display:grid}.card{width:min(620px,92vw);padding:22px;border-radius:24px;background:linear-gradient(155deg,#17223d,#0a0d19);border:1px solid rgba(255,255,255,.16);box-shadow:var(--shadow)}.card h2{font-size:30px;margin:0 0 8px}.card p{color:#c6d6f4;line-height:1.55}.kbd{font-family:ui-monospace,monospace;background:#060914;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:2px 6px}.footer{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:0 4px;color:var(--muted);font-size:12px}.footer a{color:var(--cyan)}
+    @media(max-width:1050px){body{overflow:auto}#app{height:auto;min-height:100vh}main{grid-template-columns:1fr}.panel{min-height:420px}.side{max-height:none}#arena{min-height:540px}.topstats{justify-content:flex-start}header{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="stars"></div><div class="scan"></div>
+  <div id="app">
+    <header>
+      <div class="brand"><div class="logo">🟢</div><div class="title"><h1>Aurafarm Simulator</h1><p>HEAVILY WIP • Piccolo meme clicker until Stage 25, then a full 3D Gohan training saga.</p></div></div>
+      <div class="topstats">
+        <div class="pill"><small>Aura</small><span id="auraStat">0</span></div>
+        <div class="pill"><small>Stage</small><span id="stageStat">1</span></div>
+        <div class="pill"><small>Equipped</small><span id="equipStat">Starter Glow</span></div>
+        <div class="pill"><small>Mode</small><span id="modeStat">2D Farm</span></div>
+      </div>
+    </header>
+    <main>
+      <section class="panel side">
+        <h2>Training Board</h2>
+        <div class="statgrid">
+          <div class="stat"><b id="perClick">1</b><span>aura / click</span></div>
+          <div class="stat"><b id="perSec">0</b><span>aura / sec</span></div>
+          <div class="stat"><b id="rollsStat">0</b><span>rolls</span></div>
+          <div class="stat"><b id="luckStat">1.00x</b><span>luck</span></div>
+        </div>
+        <div class="stageBox">
+          <h2 id="stageName">Stage 1: Weighted Clothes</h2>
+          <div class="bar"><div class="fill" id="stageFill"></div></div>
+          <p class="hint" id="stageHint">Click Piccolo, roll better auras, and rank up. Stage 25 unlocks 3D Gohan mode.</p>
+          <button class="bigBtn green" id="trainBtn">TRAIN WITH PICCOLO</button>
+          <button class="bigBtn gold" id="rankBtn">Rank Up</button>
+        </div>
+        <h2 style="margin-top:14px">Upgrades</h2>
+        <div id="upgrades"></div>
+      </section>
+      <section class="panel" id="arena">
+        <div class="world2d"></div>
+        <div class="speech" id="speech">DODGE! Click to farm aura.</div>
+        <div class="clickZone" id="clickZone">
+          <div class="auraRing r1"></div><div class="auraRing r2"></div><div class="auraRing r3"></div>
+          <div class="piccolo" aria-label="Piccolo meme trainer">
+            <div class="antenna a1"></div><div class="antenna a2"></div><div class="cape"></div><div class="head"><div class="eye e1"></div><div class="eye e2"></div><div class="mouth"></div></div><div class="torso"></div><div class="arm l"></div><div class="arm r"></div><div class="leg l"></div><div class="leg r"></div>
+          </div>
+        </div>
+        <canvas id="world3d"></canvas>
+        <div class="bossbar"><b><span id="bossName">Raditz Training Bot</span><span class="danger" id="bossHpText">100%</span></b><div class="bar"><div class="fill" id="bossFill" style="background:linear-gradient(90deg,#ff446a,#ffd761)"></div></div></div>
+        <div class="hud3d"><div class="key">WASD Move</div><div class="key">Mouse / Arrows Turn</div><div class="key">Click / Space Ki Blast</div><div class="key">Shift Dash</div></div>
+      </section>
+      <section class="panel side">
+        <div class="tabs"><button class="tab active" data-tab="roll">Auras</button><button class="tab" data-tab="quests">Quests</button><button class="tab" data-tab="saga">Saga</button></div>
+        <div class="tabPage active" id="tab-roll">
+          <h2>Sol's RNG Style Aura Roll</h2>
+          <div class="rollDisplay"><div><div class="auraName" id="rollName">Starter Glow</div><div class="rarity" id="rollRarity">1 in 1 • x1</div></div></div>
+          <button class="bigBtn" id="rollBtn">Roll Aura (Free)</button>
+          <button class="bigBtn gold" id="luckyBtn">Lucky Roll: 250 Aura</button>
+          <p class="hint">Rare auras multiply click power. Every 25 rolls adds pity luck. Lucky rolls improve odds but still feel like RNG.</p>
+          <h2>Inventory</h2><div class="inventory" id="inventory"></div>
+        </div>
+        <div class="tabPage" id="tab-quests">
+          <h2>Piccolo's Meme Orders</h2><div id="quests"></div>
+        </div>
+        <div class="tabPage" id="tab-saga">
+          <h2>Dragon Progression</h2><p class="hint">After Stage 25, the game switches to 3D. You play as a Gohan-inspired trainee following escalating saga beats.</p><div id="sagaList"></div>
+        </div>
+      </section>
+    </main>
+    <div class="footer"><span>HEAVILY WIP • Offline single-folder HTML. No external scripts, fonts, CDNs, or assets.</span><span><a href="../../index.html">Back to index</a></span></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="modal show" id="intro"><div class="card"><h2>Welcome to Aurafarm Simulator</h2><p>Stage 1-24 is a goofy Piccolo meme aura farm: click, roll absurd auras, complete orders, and rank up. At <b>Stage 25</b>, it transforms into a 3D Gohan training adventure with movement, ki blasts, bosses, and saga progression.</p><p><span class="kbd">Click</span> to train. Roll auras for multipliers. Save data is local to your browser.</p><button class="bigBtn green" id="startBtn">Start Farming Aura</button></div></div>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const fmt = n => n < 1000 ? Math.floor(n).toString() : n < 1e6 ? (n/1e3).toFixed(1)+'K' : n < 1e9 ? (n/1e6).toFixed(1)+'M' : (n/1e9).toFixed(1)+'B';
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const stages = ['Weighted Clothes','Dodge Bootcamp','Grill Master Piccolo','Senzu Snack Run','Hyperbolic Homework','Cape Swag','Special Beam Homework','Namekian Nap Denied','One More Pushup','Gohan Cry Meter','Ki Control 101','Desert Survival','Piccolo Car License','Bean Debt Collector','Gravity-ish Room','Green Dad Approval','Dodge Remix','Tiny Rage Spark','Moon? What Moon?','Cape Tailor Arc','Aura Tax Evasion','Screaming Warmup','Meme Cannon Practice','Final 2D Grind','3D Saiyan Arrival','Namek Chase','Android Pressure','Cell Games Climb','Ultimate Potential','Beast Aura Finale'];
+const sagas = [
+  {stage:25,name:'Saiyan Arrival',boss:'Raditz Training Bot',color:'#ffbd59'},
+  {stage:26,name:'Namek Chase',boss:'Frieza Drone',color:'#a884ff'},
+  {stage:27,name:'Android Pressure',boss:'Android Sparring Unit',color:'#59e7ff'},
+  {stage:28,name:'Cell Games Climb',boss:'Perfect Bug Warrior',color:'#8dff65'},
+  {stage:29,name:'Ultimate Potential',boss:'Elder Unlock Trial',color:'#fff06a'},
+  {stage:30,name:'Beast Aura Finale',boss:'Red Ribbon Kaiju',color:'#ff596a'}
+];
+const auraTable = [
+ {n:'Starter Glow', r:1, m:1, c:'#8dff65'}, {n:'Piccolo Drip', r:4, m:1.6, c:'#66ff77'}, {n:'DODGE!!!', r:9, m:2.4, c:'#ccff66'}, {n:'Weighted Cape', r:18, m:3.8, c:'#ffffff'}, {n:'Namekian Thunder', r:35, m:6, c:'#59e7ff'}, {n:'Senzu Overdose', r:70, m:10, c:'#9dff88'}, {n:'Special Beam Glow', r:140, m:18, c:'#bd7cff'}, {n:'Desert Moon Rage', r:300, m:32, c:'#ffd761'}, {n:'Saiyan Spark', r:700, m:60, c:'#ff9d46'}, {n:'Super Saiyan Storm', r:1500, m:115, c:'#fff06a'}, {n:'Mystic Potential', r:4000, m:260, c:'#d6f1ff'}, {n:'Beast Aura', r:10000, m:650, c:'#ff596a'}, {n:'Piccolo Meme God', r:25000, m:1500, c:'#71ff4f'}
+];
+const upgradesDef = [
+ {id:'gloves', name:'Weighted Gloves', desc:'+1 base aura/click per level', base:25, scale:1.55},
+ {id:'students', name:'Tiny Trainees', desc:'+1 passive aura/sec per level', base:80, scale:1.7},
+ {id:'luck', name:'Piccolo Luck Lecture', desc:'+4% roll luck per level', base:150, scale:1.9},
+ {id:'focus', name:'Ki Focus Combo', desc:'+12% click power per level', base:220, scale:1.8}
+];
+const questsDef = [
+ {id:'click100', text:'DODGE 100 times', check:s=>s.clicks>=100, reward:250},
+ {id:'roll25', text:'Roll 25 auras', check:s=>s.rolls>=25, reward:400},
+ {id:'stage10', text:'Reach Stage 10', check:s=>s.stage>=10, reward:900},
+ {id:'rare', text:'Own an aura rarer than 1 in 100', check:s=>Object.keys(s.inventory).some(i=>auraTable[i]&&auraTable[i].r>=100), reward:1500},
+ {id:'stage25', text:'Unlock the 3D Gohan saga', check:s=>s.stage>=25, reward:5000}
+];
+let state = {aura:0,total:0,stage:1,clicks:0,rolls:0,equipped:0,inventory:{0:1},up:{gloves:0,students:0,luck:0,focus:0},quests:{},bossHp:1,px:0,pz:0,rot:0,lastSave:Date.now()};
+try{const saved=JSON.parse(localStorage.getItem('aurafarmSimulatorSave')||'null'); if(saved) state={...state,...saved,up:{...state.up,...saved.up},inventory:{...state.inventory,...saved.inventory},quests:{...state.quests,...saved.quests}}}catch(e){}
+const els = ['auraStat','stageStat','equipStat','modeStat','perClick','perSec','rollsStat','luckStat','stageName','stageFill','stageHint','upgrades','inventory','quests','sagaList','rollName','rollRarity','rollBtn','luckyBtn','rankBtn','trainBtn','clickZone','arena','speech','toast','bossName','bossHpText','bossFill'].reduce((a,id)=>(a[id]=$(id),a),{});
+function auraObj(){return auraTable[state.equipped]||auraTable[0]}
+function luck(){return +(1 + state.up.luck*.04 + Math.floor(state.rolls/25)*.05 + (state.stage>=25?.35:0)).toFixed(2)}
+function perClick(){return (1 + state.up.gloves) * auraObj().m * (1 + state.up.focus*.12) * (1 + Math.max(0,state.stage-1)*.08)}
+function perSec(){return state.up.students * auraObj().m * .75 + (state.stage>=25?state.stage*2:0)}
+function stageNeed(){return Math.floor(55 * Math.pow(state.stage, 1.72))}
+function toast(msg){els.toast.textContent=msg; els.toast.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>els.toast.classList.remove('show'),1800)}
+function save(){localStorage.setItem('aurafarmSimulatorSave',JSON.stringify(state))}
+function addAura(n,x,y){state.aura+=n; state.total+=n; if(x!==undefined){const f=document.createElement('div'); f.className='float'; f.textContent='+'+fmt(n)+' aura'; f.style.left=x+'px'; f.style.top=y+'px'; f.style.color=auraObj().c; document.body.appendChild(f); setTimeout(()=>f.remove(),1000)}}
+function train(ev){const gain=perClick(); addAura(gain, ev?.clientX || innerWidth/2, ev?.clientY || innerHeight/2); state.clicks++; if(state.stage>=25) shoot(); if(Math.random()<.06) piccoloLine(); render()}
+function piccoloLine(){const lines=['DODGE!','Again, but louder.','Your aura is mid. Fix it.','Gohan, stop crying and click.','That roll was NOT canon.','Cape stays ON for training.','SPECIAL BEAM... FARMON!']; els.speech.textContent=lines[Math.floor(Math.random()*lines.length)]}
+function rankUp(){const need=stageNeed(); if(state.aura<need){toast('Need '+fmt(need-state.aura)+' more aura.'); return} state.aura-=need; state.stage++; state.bossHp=1; if(state.stage===25){els.arena.classList.add('mode3d'); $('intro').classList.add('show'); $('.card h2'); $('intro').querySelector('h2').textContent='Stage 25 unlocked: 3D Gohan mode!'; $('intro').querySelector('p').innerHTML='You are now a Gohan-inspired fighter in a 3D arena. Move with <b>WASD</b>, turn with mouse/arrows, and fire ki blasts with click or space. Defeat bosses to keep ranking up.'; $('startBtn').textContent='Enter 3D Saga'; toast('3D mode unlocked!') } else toast('Stage '+state.stage+' reached!'); render(); save()}
+function roll(lucky=false){const cost=lucky?250:0; if(state.aura<cost){toast('Not enough aura for lucky roll.');return} state.aura-=cost; state.rolls++; let L=luck()*(lucky?2.3:1); let best=0; for(let i=0;i<auraTable.length;i++){let chance=L/auraTable[i].r; if(Math.random()<chance) best=i} state.inventory[best]=(state.inventory[best]||0)+1; const a=auraTable[best]; els.rollName.textContent=a.n; els.rollName.style.color=a.c; els.rollRarity.textContent=`1 in ${a.r.toLocaleString()} • x${a.m}`; if(a.m > auraObj().m){state.equipped=best; toast('Auto-equipped '+a.n+'!')} else toast('Rolled '+a.n); render(); save()}
+function buy(id){const u=upgradesDef.find(x=>x.id===id), lvl=state.up[id]||0, cost=Math.floor(u.base*Math.pow(u.scale,lvl)); if(state.aura<cost){toast('Need '+fmt(cost-state.aura)+' more aura.');return} state.aura-=cost; state.up[id]=lvl+1; toast(u.name+' level '+state.up[id]); render(); save()}
+function claimQuest(id){const q=questsDef.find(q=>q.id===id); if(!q||state.quests[id]||!q.check(state))return; state.quests[id]=true; addAura(q.reward); toast('Quest complete: +'+fmt(q.reward)); render(); save()}
+function render(){const a=auraObj(), need=stageNeed(); document.documentElement.style.setProperty('--aura',a.c); els.auraStat.textContent=fmt(state.aura); els.stageStat.textContent=state.stage; els.equipStat.textContent=a.n; els.modeStat.textContent=state.stage>=25?'3D Gohan':'2D Farm'; els.perClick.textContent=fmt(perClick()); els.perSec.textContent=fmt(perSec()); els.rollsStat.textContent=state.rolls; els.luckStat.textContent=luck().toFixed(2)+'x'; els.stageName.textContent='Stage '+state.stage+': '+(stages[state.stage-1]||'Infinite Aura'); els.stageFill.style.width=clamp(state.aura/need*100,0,100)+'%'; els.stageHint.textContent=state.stage<25?'Normal Piccolo meme farming until Stage 25. Rank cost: '+fmt(need)+' aura.':'3D saga active. Damage bosses with ki blasts and keep ranking. Rank cost: '+fmt(need)+' aura.'; els.rankBtn.textContent='Rank Up • '+fmt(need)+' Aura'; els.rankBtn.disabled=state.aura<need; els.arena.classList.toggle('mode3d',state.stage>=25);
+ els.upgrades.innerHTML=upgradesDef.map(u=>{const lvl=state.up[u.id]||0,c=Math.floor(u.base*Math.pow(u.scale,lvl));return `<div class="upgrade"><div><strong>${u.name} Lv.${lvl}</strong><small>${u.desc}</small></div><button class="tag" onclick="Aurafarm.buy('${u.id}')">${fmt(c)}</button></div>`}).join('');
+ els.inventory.innerHTML=Object.keys(state.inventory).sort((a,b)=>auraTable[b].m-auraTable[a].m).map(i=>{const au=auraTable[i];return `<div class="auraItem ${+i===state.equipped?'equipped':''}" style="--aura:${au.c}"><div><strong style="color:${au.c}">${au.n}</strong><br><small>1 in ${au.r.toLocaleString()} • x${au.m} • owned ${state.inventory[i]}</small></div><button class="tag" onclick="Aurafarm.equip(${i})">Equip</button></div>`}).join('');
+ els.quests.innerHTML=questsDef.map(q=>{const done=!!state.quests[q.id], ready=q.check(state); return `<div class="quest ${done?'done':''}"><strong>${q.text}</strong><br><small>Reward: ${fmt(q.reward)} aura</small><button class="bigBtn ${done?'green':''}" ${(!ready||done)?'disabled':''} onclick="Aurafarm.claimQuest('${q.id}')">${done?'Claimed':ready?'Claim':'Not yet'}</button></div>`}).join('');
+ els.sagaList.innerHTML=sagas.map(s=>`<div class="quest ${state.stage>=s.stage?'done':''}"><strong style="color:${s.color}">Stage ${s.stage}: ${s.name}</strong><br><small>Boss: ${s.boss}</small></div>`).join('');
+ const saga=sagas.filter(s=>state.stage>=s.stage).pop()||sagas[0]; els.bossName.textContent=saga.boss; els.bossFill.style.width=(state.bossHp*100)+'%'; els.bossHpText.textContent=Math.ceil(state.bossHp*100)+'%'; if(state.bossHp<=0){addAura(stageNeed()*.4); state.bossHp=1; toast('Boss defeated! Bonus aura dropped.')} }
+window.Aurafarm={buy,equip:i=>{state.equipped=i; toast('Equipped '+auraTable[i].n); render(); save()}, claimQuest};
+$('startBtn').onclick=()=>$('intro').classList.remove('show'); els.trainBtn.onclick=train; els.clickZone.onclick=train; els.rankBtn.onclick=rankUp; els.rollBtn.onclick=()=>roll(false); els.luckyBtn.onclick=()=>roll(true); document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab,.tabPage').forEach(x=>x.classList.remove('active')); b.classList.add('active'); $('tab-'+b.dataset.tab).classList.add('active')});
+setInterval(()=>{addAura(perSec()/2); render()},500); setInterval(save,5000);
+// Tiny no-dependency 3D renderer for Stage 25+
+const canvas=$('world3d'), ctx=canvas.getContext('2d'); let keys={}, mouseDown=false, blasts=[]; function resize(){canvas.width=canvas.clientWidth*devicePixelRatio;canvas.height=canvas.clientHeight*devicePixelRatio} addEventListener('resize',resize); resize();
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.code==='Space'&&state.stage>=25){e.preventDefault();shoot()}}); addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false); canvas.addEventListener('click',shoot); canvas.addEventListener('mousemove',e=>{if(e.buttons) state.rot += e.movementX*.006});
+function shoot(){ if(state.stage<25)return; blasts.push({x:state.px,z:state.pz,rot:state.rot,life:90}); state.bossHp=clamp(state.bossHp - perClick()/stageNeed()*0.9,0,1); }
+function project(x,y,z){let dx=x-state.px, dz=z-state.pz, s=Math.sin(state.rot), c=Math.cos(state.rot), rx=dx*c-dz*s, rz=dx*s+dz*c+9; const f=canvas.height*.72; return {x:canvas.width/2+rx/rz*f, y:canvas.height*.58-y/rz*f, z:rz, scale:f/rz}}
+function draw3d(){requestAnimationFrame(draw3d); if(state.stage<25)return; const dt=.9, sp=(keys.shift?0.18:0.09)*dt; if(keys.a)state.rot-=.045;if(keys.d)state.rot+=.045; let mx=0,mz=0; if(keys.w)mz+=sp;if(keys.s)mz-=sp; state.px+=Math.sin(state.rot)*mz+Math.cos(state.rot)*mx; state.pz+=Math.cos(state.rot)*mz-Math.sin(state.rot)*mx; ctx.clearRect(0,0,canvas.width,canvas.height); let g=ctx.createLinearGradient(0,0,0,canvas.height); g.addColorStop(0,'#080b1a'); g.addColorStop(.55,'#17295a'); g.addColorStop(.56,'#18351e'); g.addColorStop(1,'#061008'); ctx.fillStyle=g; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.strokeStyle='rgba(141,255,101,.22)'; ctx.lineWidth=1; for(let i=-20;i<=20;i++){line3d(i,0,-15,i,0,50); line3d(-20,0,i,20,0,i)}
+ const saga=sagas.filter(s=>state.stage>=s.stage).pop()||sagas[0]; for(let i=0;i<14;i++){drawCrystal(Math.sin(i*9.1)*18,0.2,8+i*4, i%3?saga.color:auraObj().c)} drawBoss(0,0,28,saga.color); drawPlayer(); blasts.forEach((b,idx)=>{b.life--; b.x+=Math.sin(b.rot)*.55; b.z+=Math.cos(b.rot)*.55; drawOrb(b.x,1.25,b.z,auraObj().c,0.22); if(b.life<=0)blasts.splice(idx,1)}); }
+function line3d(x1,y1,z1,x2,y2,z2){const a=project(x1,y1,z1),b=project(x2,y2,z2); if(a.z<=.5||b.z<=.5)return; ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}
+function drawOrb(x,y,z,color,sz){const p=project(x,y,z); if(p.z<=.5)return; const r=p.scale*sz, grd=ctx.createRadialGradient(p.x,p.y,1,p.x,p.y,r); grd.addColorStop(0,'#fff'); grd.addColorStop(.35,color); grd.addColorStop(1,'transparent'); ctx.fillStyle=grd; ctx.beginPath();ctx.arc(p.x,p.y,r,0,7);ctx.fill()}
+function drawCrystal(x,y,z,color){const p=project(x,y,z); if(p.z<=.5)return; ctx.save();ctx.translate(p.x,p.y);ctx.scale(p.scale*.032,p.scale*.032);ctx.fillStyle=color;ctx.globalAlpha=.85;ctx.beginPath();ctx.moveTo(0,-28);ctx.lineTo(16,0);ctx.lineTo(0,32);ctx.lineTo(-16,0);ctx.closePath();ctx.fill();ctx.restore()}
+function drawBoss(x,y,z,color){const p=project(x,y,z); if(p.z<=.5)return; ctx.save();ctx.translate(p.x,p.y);let s=p.scale*.09;ctx.scale(s,s);ctx.shadowColor=color;ctx.shadowBlur=30;ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(0,62,52,12,0,0,7);ctx.fill();ctx.fillStyle=color;ctx.fillRect(-32,-70,64,120);ctx.fillStyle='#fff';ctx.fillRect(-18,-42,12,10);ctx.fillRect(8,-42,12,10);ctx.fillStyle='#ff596a';ctx.fillRect(-42,12,84,12);ctx.restore()}
+function drawPlayer(){const x=canvas.width/2,y=canvas.height*.72; ctx.save();ctx.translate(x,y);ctx.shadowColor=auraObj().c;ctx.shadowBlur=26;ctx.strokeStyle=auraObj().c;ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,-65,62,0,7);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#f0c08a';ctx.beginPath();ctx.arc(0,-116,22,0,7);ctx.fill();ctx.fillStyle='#171717';ctx.beginPath();ctx.moveTo(-24,-125);ctx.lineTo(0,-163);ctx.lineTo(24,-125);ctx.closePath();ctx.fill();ctx.fillStyle='#7c3cff';ctx.fillRect(-25,-92,50,70);ctx.fillStyle='#f0c08a';ctx.fillRect(-45,-82,18,58);ctx.fillRect(27,-82,18,58);ctx.fillStyle='#263c85';ctx.fillRect(-22,-22,18,58);ctx.fillRect(4,-22,18,58);ctx.fillStyle='white';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText('GOHAN',0,53);ctx.restore()}
+draw3d(); render(); piccoloLine();
+})();
+</script>
+</body>
+</html>
