@@ -18,9 +18,25 @@ This repo is home to my HTML game projects. Some are small experiments, some are
 
 | Game | Status | Description |
 |------|--------|-------------|
+| Aurafarm Simulator | 🚧 Heavy WIP | Piccolo meme aura farming that turns into a 3D Gohan training saga at Stage 25 |
 | HTML Expeditions | 🚧 Heavy WIP | A 3D WebGL fan game inspired by Anime Expeditions |
 
-More stuff will show up here as I make it.
+Open `index.html` for the repo landing page, or launch `games/aurafarm-simulator/index.html` directly.
+
+---
+
+## 🟢 Aurafarm Simulator
+
+**Aurafarm Simulator** is a **HEAVILY WIP** fully offline HTML game based on Piccolo meme training energy. Stages 1-24 play like an arcade aura clicker with Sol's RNG-style aura rolling, upgrades, quests, and multiplier hunting. At **Stage 25**, it switches into a 3D Gohan-inspired training saga with WASD movement, camera turning, ki blasts, bosses, and Dragon Ball-style progression beats.
+
+### What's included:
+- Piccolo meme clicker/farming loop for the early game
+- Aura RNG rolling with rarity, luck, pity, inventory, and auto-equip
+- Upgrades, quests, rank-ups, local save data, and passive aura gain
+- Stage 25+ 3D arena mode with a Gohan-styled player character and saga bosses
+- Fully offline, no external dependencies, no CDNs, no asset downloads
+
+**Play:** Open `games/aurafarm-simulator/index.html` in your browser.
 
 ---
 
